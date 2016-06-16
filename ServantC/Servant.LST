@@ -1,0 +1,817 @@
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 1   
+
+
+C51 COMPILER V9.51, COMPILATION OF MODULE SERVANT
+OBJECT MODULE PLACED IN .\Servant.obj
+COMPILER INVOKED BY: D:\MDK\MDK4\C51\BIN\C51.EXE ..\Servant.c BROWSE DEBUG OBJECTEXTEND TABS(2) OBJECT(.\Servant.obj)
+
+line level    source
+
+   1          #include  "stdio.h"
+   2          #include  "string.h"
+   3          #include  "intrins.h"
+   4          #include  "reg51.h"
+   5          
+   6          //定义SJA1000的基址
+   7          #define SJA_BaseAdr  0XFE00       //P2.0
+   8          // 控制寄存器
+   9          #define         REG_CONTROL       SJA_BaseAdr+0x00       //内部控制寄存器
+  10          #define         REG_COMMAND       SJA_BaseAdr+0x01       //命令寄存器
+  11          #define         REG_STATUS        SJA_BaseAdr+0x02       //状态寄存器
+  12          #define         REG_INTERRUPT     SJA_BaseAdr+0x03       //中断寄存器
+  13          #define         REG_INTENABLE     SJA_BaseAdr+0x04       //中断使能寄存器
+  14          #define         REG_BTR0          SJA_BaseAdr+0x06       //总线定时寄存器0
+  15          #define         REG_BTR1          SJA_BaseAdr+0x07       //总线定时寄存器1
+  16          #define         REG_OCR           SJA_BaseAdr+0x08       //输出控制寄存器
+  17          #define         REG_TEST          SJA_BaseAdr+0x09       //测试寄存器
+  18          
+  19          #define         REG_RESVER1       SJA_BaseAdr+0x0A       //保留1
+  20          #define         REG_ARBITRATE     SJA_BaseAdr+0x0B       //仲裁丢失捕捉
+  21          #define         REG_ERRCATCH      SJA_BaseAdr+0x0C       //错误代码捕捉
+  22          #define         REG_ERRLIMIT      SJA_BaseAdr+0x0D       //错误报警限额
+  23          
+  24          #define         REG_RXERR         SJA_BaseAdr+0x0E         //接收错误计数器
+  25          #define         REG_TXERR         SJA_BaseAdr+0x0F         //发送错误计数器
+  26          
+  27          #define         REG_ACR1          SJA_BaseAdr+0x10       //验收代码寄存器
+  28          #define         REG_ACR2          SJA_BaseAdr+0x11       //验收代码寄存器
+  29          #define         REG_ACR3          SJA_BaseAdr+0x12       //验收代码寄存器
+  30          #define         REG_ACR4          SJA_BaseAdr+0x13       //验收代码寄存器
+  31          #define         REG_AMR1          SJA_BaseAdr+0x14       //验收屏蔽寄存器
+  32          #define         REG_AMR2          SJA_BaseAdr+0x15       //验收屏蔽寄存器
+  33          #define         REG_AMR3          SJA_BaseAdr+0x16       //验收屏蔽寄存器
+  34          #define         REG_AMR4          SJA_BaseAdr+0x17       //验收屏蔽寄存器
+  35          
+  36          // 发送缓冲区寄存器
+  37          #define         REG_TXBuffer1     SJA_BaseAdr+0x10         //发送缓冲区1
+  38          #define         REG_TXBuffer2     SJA_BaseAdr+0x11         //发送缓冲区2
+  39          #define         REG_TXBuffer3     SJA_BaseAdr+0x12         //发送缓冲区3
+  40          #define         REG_TXBuffer4     SJA_BaseAdr+0x13         //发送缓冲区4
+  41          #define         REG_TXBuffer5     SJA_BaseAdr+0x14         //发送缓冲区5
+  42          #define         REG_TXBuffer6     SJA_BaseAdr+0x15         //发送缓冲区6
+  43          #define         REG_TXBuffer7     SJA_BaseAdr+0x16         //发送缓冲区7
+  44          #define         REG_TXBuffer8     SJA_BaseAdr+0x17         //发送缓冲区8
+  45          #define         REG_TXBuffer9     SJA_BaseAdr+0x18         //发送缓冲区9
+  46          #define         REG_TXBuffer10    SJA_BaseAdr+0x19         //发送缓冲区10
+  47          #define         REG_TXBuffer11    SJA_BaseAdr+0x1A         //发送缓冲区11
+  48          #define         REG_TXBuffer12    SJA_BaseAdr+0x1B         //发送缓冲区12
+  49          #define         REG_TXBuffer13    SJA_BaseAdr+0x1C         //发送缓冲区13
+  50          
+  51          // 接收缓冲区寄存器
+  52          #define         REG_RXBuffer1       SJA_BaseAdr+0x10       //接收缓冲区1
+  53          #define         REG_RXBuffer2       SJA_BaseAdr+0x11       //接收缓冲区2
+  54          #define         REG_RXBuffer3      SJA_BaseAdr+0x12        //接收缓冲区3
+  55          #define         REG_RXBuffer4       SJA_BaseAdr+0x13       //接收缓冲区4
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 2   
+
+  56          #define         REG_RXBuffer5      SJA_BaseAdr+0x14        //接收缓冲区5
+  57          #define         REG_RXBuffer6     SJA_BaseAdr+0x15         //接收缓冲区6
+  58          #define         REG_RXBuffer7     SJA_BaseAdr+0x16         //接收缓冲区7
+  59          #define         REG_RXBuffer8     SJA_BaseAdr+0x17         //接收缓冲区8
+  60          #define         REG_RXBuffer9     SJA_BaseAdr+0x18         //接收缓冲区9
+  61          #define         REG_RXBuffer10     SJA_BaseAdr+0x19        //接收缓冲区10
+  62          #define         REG_RXBuffer11     SJA_BaseAdr+0x1A        //接收缓冲区11
+  63          #define         REG_RXBuffer12     SJA_BaseAdr+0x1B        //接收缓冲区12
+  64          #define         REG_RXBuffer13     SJA_BaseAdr+0x1C        //接收缓冲区13
+  65          
+  66          #define         REG_RXCOUNT       SJA_BaseAdr+0x1D         //RX报文计数器
+  67          #define         REG_RBSA          SJA_BaseAdr+0x1E         //接收缓冲区起始地址
+  68          #define         REG_CDR           SJA_BaseAdr+0x1F         //时钟分频寄存器
+  69          //功能说明:   CAN控制器SJA1000通讯波特率.SJA1000的晶振为必须为24MHZ*/
+  70          #define         BTR0_Rate_10k      0xEF          //20KBPS的预设值
+  71          #define         BTR1_Rate_10k      0xFF          //20KBPS的预设值
+  72          
+  73          /*
+  74          功能说明:   CAN控制器SJA1000通讯波特率.SJA1000的晶振为必须为16MHZ*/
+  75          
+  76          #define         BTR0_Rate_20k      0x53          //20KBPS的预设值
+  77          #define         BTR1_Rate_20k      0x2F          //20KBPS的预设值
+  78          #define         BTR0_Rate_40k      0x87          //40KBPS的预设值
+  79          #define         BTR1_Rate_40k      0xFF          //40KBPS的预设值
+  80          #define         BTR0_Rate_50k      0x47          //50KBPS的预设值
+  81          #define         BTR1_Rate_50k      0x2F          //50KBPS的预设值
+  82          #define         BTR0_Rate_80k      0x83          //80KBPS的预设值
+  83          #define         BTR1_Rate_80k      0xFF          //80KBPS的预设值
+  84          #define         BTR0_Rate_100k     0x43          //100KBPS的预设值
+  85          #define         BTR1_Rate_100k     0x2f          //100KBPS的预设值
+  86          #define         BTR0_Rate_125k     0x03          //125KBPS的预设值
+  87          #define         BTR1_Rate_125k     0x1c          //125KBPS的预设值
+  88          #define         BTR0_Rate_200k     0x81          //200KBPS的预设值
+  89          #define         BTR1_Rate_200k     0xFA          //200KBPS的预设值
+  90          #define         BTR0_Rate_250k     0x01          //250KBPS的预设值
+  91          #define         BTR1_Rate_250k     0x1c          //250KBPS的预设值
+  92          #define         BTR0_Rate_400k     0x80          //400KBPS的预设值
+  93          #define         BTR1_Rate_400k     0xfa          //400KBPS的预设值
+  94          #define         BTR0_Rate_500k     0x00          //500KBPS的预设值
+  95          #define         BTR1_Rate_500k     0x1c          //500KBPS的预设值
+  96          #define         BTR0_Rate_666k     0x80          //666KBPS的预设值
+  97          #define         BTR1_Rate_666k     0xb6          //666KBPS的预设值
+  98          #define         BTR0_Rate_800k     0x00          //800KBPS的预设值
+  99          #define         BTR1_Rate_800k     0x16          //800KBPS的预设值
+ 100          #define         BTR0_Rate_1000k    0x00          //1000KBPS的预设值
+ 101          #define         BTR1_Rate_1000k    0x14          //1000KBPS的预设值
+ 102          //BPS
+ 103          #define         ByteRate_10k       10 //24MHZ**********************
+ 104          #define         ByteRate_40k       40
+ 105          #define         ByteRate_50k       50
+ 106          #define         ByteRate_80k       80
+ 107          #define         ByteRate_100k      100
+ 108          #define         ByteRate_125k      125
+ 109          #define         ByteRate_200k      200
+ 110          #define         ByteRate_250k      250
+ 111          #define         ByteRate_400k      400
+ 112          #define         ByteRate_500k      500
+ 113          #define         ByteRate_800k      800
+ 114          #define         ByteRate_1000k     1000
+ 115          
+ 116          //命令字
+ 117          #define    TR_CMD     0X01
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 3   
+
+ 118          #define    AT_CMD     0X02
+ 119          #define    RRB_CMD    0X04
+ 120          #define    COS_CMD    0X08
+ 121          #define    SRR_CMD    0X10
+ 122          #define    GTS_CMD    0X10
+ 123          //错误字
+ 124          
+ 125          #define CAN_INTERFACE_OK      0
+ 126          #define CAN_BUS_OK            0
+ 127          #define CAN_INTERFACE_ERR     0XFF
+ 128          #define CAN_ENTERSET_ERR      0XFE
+ 129          #define CAN_QUITSET_ERR       0XFD
+ 130          #define CAN_INITOBJECT_ERR    0XFC
+ 131          #define CAN_INITBTR_ERR       0XFB
+ 132          #define CAN_INITOUTCTL_ERR    0XFA
+ 133          #define CAN_INTCLKDIV_ERR     0XF9
+ 134          #define CAN_BUS_ERR           0XF8
+ 135          
+ 136          // 定义通讯协议的发送命令标识宏
+ 137          #define SEND_COMMAND_QUERY_STATUS   (0x81)
+ 138          #define SEND_COMMAND_SET_PARAM      (0x82)
+ 139          #define SEND_COMMAND_QUERY_PARAM    (0x83)
+ 140          #define SEND_COMMAND_SET_ONOFF      (0x84)
+ 141          #define SEND_COMMAND_SET_RESET      (0x85)
+ 142          
+ 143          // 定义通讯协议的应答命令标识宏
+ 144          #define ANS_COMMAND_MODULE_STATUS (0x01)
+ 145          #define ANS_COMMAND_SET_PARAM     (0x02)
+ 146          #define ANS_COMMAND_MODULE_PARAM  (0x03)
+ 147          #define ANS_COMMAND_SET_ONOFF     (0x04)
+ 148          #define ANS_COMMAND_SET_RESET     (0x05)
+ 149          
+ 150          // 定义机器地址宏
+ 151          #define MASTER_ADDRESS            (0x01)
+ 152          #define SLAVE_A_ADDRESS           (0x02)
+ 153          #define SLAVE_B_ADDRESS           (0x04)
+ 154          #define SLAVE_C_ADDRESS           (0X08)
+ 155          #define MACHINE_ADDRESS           (SLAVE_C_ADDRESS)
+ 156          
+ 157          //系统指针，指向SJA1000
+ 158          unsigned char xdata *SJA_BCANAdr;
+ 159          unsigned char data    RevceData[10];
+ 160          unsigned char code table[]={0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8
+             -e};
+ 161          sbit CS=P2^0;
+ 162          sbit Led = P2^1;
+ 163          sbit Infrared=P2^2;
+ 164          
+ 165          unsigned char sendTo = SLAVE_C_ADDRESS;
+ 166          void DelayUs2x(unsigned char t)
+ 167          {   
+ 168   1       while(--t);
+ 169   1      }
+ 170          void DelayMs(unsigned char t)
+ 171          {
+ 172   1           
+ 173   1       while(t--)
+ 174   1       {
+ 175   2           //大致延时1mS
+ 176   2           DelayUs2x(245);
+ 177   2         DelayUs2x(245);
+ 178   2       }
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 4   
+
+ 179   1      }
+ 180          void delay_ms(unsigned char t)
+ 181          {
+ 182   1           unsigned char i,j;
+ 183   1           for (i=0;i<t;i++)
+ 184   1            for(j=0;j<33;j++) 
+ 185   1            ;
+ 186   1          
+ 187   1      }
+ 188          void delay10ms(void) //延时程序
+ 189          
+ 190          {
+ 191   1      
+ 192   1            unsigned char i,j;
+ 193   1      
+ 194   1            for(i=20;i>0;i--)
+ 195   1      
+ 196   1            for(j=248;j>0;j--);
+ 197   1      
+ 198   1      }
+ 199          
+ 200          /****************************************************
+ 201          **函数原型：  void display(unsigned char num) 
+ 202          **功    能：  数码管显示
+ 203          **入口参数:   要显示字符 
+ 204          **出口参数:   无
+ 205          **说    明:   当SJA1000收到正确的报文时,然后显示出来           
+ 206          *****************************************************/
+ 207          void display(unsigned char num)  // 显示子函数
+ 208          {
+ 209   1              P1=table[num]; //将第num个显示编码送P1口
+ 210   1      }
+ 211          //***************************************************
+ 212          
+ 213          //初始化cpu
+ 214          
+ 215          //**************************************************
+ 216          void Init_Cpu(void)                                  //单片机初始化,开放外部中断0
+ 217          {
+ 218   1           PX0=1;
+ 219   1           EX0=1;
+ 220   1           IT0=0;
+ 221   1          // EA=1;
+ 222   1      }
+ 223          
+ 224          /*------------------------------------------------
+ 225                              串口初始化
+ 226          ------------------------------------------------*/
+ 227          void InitUART  (void)
+ 228          {
+ 229   1      
+ 230   1          SCON  = 0x50;           // SCON: 模式 1, 8-bit UART, 使能接收  
+ 231   1          TMOD |= 0x20;               // TMOD: timer 1, mode 2, 8-bit 重装
+ 232   1          TH1   = 0xFD;               // TH1:  重装值 9600 波特率 晶振 11.0592MHz  
+ 233   1          TR1   = 1;                  // TR1:  timer 1 打开                         
+ 234   1          EA    = 1;                  //打开总中断
+ 235   1       }                            
+ 236          
+ 237          /*------------------------------------------------
+ 238                              发送一个字节
+ 239          ------------------------------------------------*/
+ 240          void SendByte(unsigned char dat)
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 5   
+
+ 241          {
+ 242   1       SBUF = dat;
+ 243   1       while(!TI);
+ 244   1            TI = 0;
+ 245   1      }
+ 246          /*------------------------------------------------
+ 247                              发送一个字符串
+ 248          ------------------------------------------------*/
+ 249          void SendStr(unsigned char *s)
+ 250          {
+ 251   1       while(*s!='\0')// \0 表示字符串结束标志，
+ 252   1                      //通过检测是否字符串末尾
+ 253   1        {
+ 254   2        SendByte(*s);
+ 255   2        s++;
+ 256   2        }
+ 257   1      }
+ 258          
+ 259          //***********************************************************************
+ 260          /************************************************************************
+ 261          *函数原型: bit BCAN_SET_OUTCLK( unsigned char Clock_Out)               *
+ 262          *参数说明:                                                             *
+ 263          *          Clock_Out:存放时钟分频寄存器(CDR)的参数设置                 *
+ 264          *返回值:                                                               *
+ 265          *           0 ;设置成功                                                *
+ 266          *           1 ;设置失败                                                *
+ 267          *说明:设置SJA1000的时钟分频 。该子程序只能用于复位模式                      
+ 268          ************************************************************************/
+ 269          bit BCAN_SET_OUTCLK(unsigned char Clock_Out)
+ 270          {
+ 271   1        SJA_BCANAdr=REG_CDR;           
+ 272   1      
+ 273   1        *SJA_BCANAdr=Clock_Out;        
+ 274   1        if(*SJA_BCANAdr != Clock_Out)
+ 275   1           return 1; 
+ 276   1         else 
+ 277   1           return 0;
+ 278   1      } 
+ 279          
+ 280          /************************************************************************
+ 281          *函数原型: bit BCAN_SET_OBJECT(unsigned char  BCAN_ACR0,BCAN_ACR1,BCAN_ACR2,BCAN_ACR3     
+ 282                                                        BCAN_AMR0, BCAN_AMR1, BCAN_AMR2, BCAN_AMR3     
+ 283          *参数说明:                                                              *
+ 284          *    BCAN_ACR(0-3):存放验收代码寄存器（ACR）的参数设置                  *
+ 285          *    BCAN_AMR(0-3):存放接收屏蔽寄存器（AMR）的参数设置                  *
+ 286          *返回值:                                                                *
+ 287          *           0 ;设置成功                                                 *
+ 288          *           1 ;设置失败                                                 *
+ 289          *说明:设置CAN节点的通讯对象，允许接收的报文,是由AMR和ACR共同决定的.     *
+ 290          *************************************************************************/ 
+ 291          bit BCAN_SET_OBJECT(unsigned char  BCAN_ACR0,BCAN_ACR1,BCAN_ACR2,BCAN_ACR3,BCAN_AMR0,BCAN_AMR1,BCAN_AMR2,B
+             -CAN_AMR3)
+ 292          {
+ 293   1        SJA_BCANAdr=REG_TXBuffer1;     
+ 294   1      
+ 295   1        *SJA_BCANAdr=BCAN_ACR0;        //写入参数
+ 296   1         
+ 297   1        SJA_BCANAdr=REG_TXBuffer2;
+ 298   1        *SJA_BCANAdr=BCAN_ACR1;
+ 299   1      
+ 300   1        SJA_BCANAdr=REG_TXBuffer3;  
+ 301   1        *SJA_BCANAdr=BCAN_ACR2;
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 6   
+
+ 302   1         
+ 303   1        SJA_BCANAdr=REG_TXBuffer4; 
+ 304   1        *SJA_BCANAdr=BCAN_ACR3;  
+ 305   1       
+ 306   1        //校验写入值
+ 307   1        if(*SJA_BCANAdr != BCAN_ACR3)  return 1; 
+ 308   1        
+ 309   1        SJA_BCANAdr=REG_TXBuffer5;      
+ 310   1      
+ 311   1        *SJA_BCANAdr=BCAN_AMR0;     //写入参数
+ 312   1        
+ 313   1        SJA_BCANAdr=REG_TXBuffer6;         
+ 314   1        *SJA_BCANAdr=BCAN_AMR1;
+ 315   1      
+ 316   1        SJA_BCANAdr=REG_TXBuffer7; 
+ 317   1        *SJA_BCANAdr=BCAN_AMR2;
+ 318   1      
+ 319   1        SJA_BCANAdr=REG_TXBuffer8; 
+ 320   1        *SJA_BCANAdr=BCAN_AMR3;
+ 321   1        //校验写入值
+ 322   1        if(*SJA_BCANAdr != BCAN_AMR3) return 1; 
+ 323   1      
+ 324   1        return 0;
+ 325   1      } 
+ 326          
+ 327          /************************************************************************
+ 328          ;*函数原型:  bit BCAN_SET_BANDRATE(unsigned char CAN_ByteRate)          *
+ 329          ;*返回值:                                                               *
+ 330          ;*           0 ;波特率设置成功                                          *
+ 331          ;*           1 ;波特率设置失败                                          *
+ 332          ;*                                                                      * 
+ 333          ;*说明:设置CAN控制器SJA1000通讯波特率.SJA1000的晶振必须为16MHZ,         *
+ 334          ;*     其它晶体的频率的值的波特率，需自己计算 。该子程序只能用于        *
+ 335          ;*     复位模式                                                         *  
+ 336          ;************************************************************************/ 
+ 337          bit BCAN_SET_BANDRATE(unsigned char CAN_ByteRate)         //波特率选择
+ 338          {
+ 339   1           unsigned char BR_Num= CAN_ByteRate,BTR0_num,BTR1_num;
+ 340   1             switch (BR_Num)
+ 341   1              {
+ 342   2                case ByteRate_10k:
+ 343   2                     BTR0_num=0xef;
+ 344   2                     BTR1_num=0xff;
+ 345   2                     break;
+ 346   2                case ByteRate_40k  :
+ 347   2                     BTR0_num=0x87;
+ 348   2                     BTR1_num=0xff;
+ 349   2                     break;
+ 350   2                case ByteRate_50k:
+ 351   2                     //BTR0_num=0x47;
+ 352   2                     //BTR1_num=0x2f;
+ 353   2                     BTR0_num=0x0e;
+ 354   2                     BTR1_num=0x1c;
+ 355   2                     break;
+ 356   2                case ByteRate_80k  :
+ 357   2                     //BTR0_num=0x83;
+ 358   2                     //BTR1_num=0xff;
+ 359   2                     BTR0_num=0x49;                      //ok
+ 360   2                     BTR1_num=0x1b;
+ 361   2                     break;
+ 362   2                case ByteRate_100k  :
+ 363   2                     //BTR0_num=0x43;
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 7   
+
+ 364   2                     //BTR1_num=0x2f;
+ 365   2                     BTR0_num=0x04;                       //ok
+ 366   2                     BTR1_num=0x1c;
+ 367   2                     break;
+ 368   2                case ByteRate_125k  :                      //SJA1000的晶振为必须为16MHZ,波特率设置为125kpbs
+ 369   2                     BTR0_num=0x03;
+ 370   2                     BTR1_num=0x1c;
+ 371   2                     //BTR0_num=0x44;                        //ok
+ 372   2                     //BTR1_num=0x1f;
+ 373   2                     break;
+ 374   2                case ByteRate_200k  ://24MHZ
+ 375   2                  //   BTR0_num=0xc5;  //
+ 376   2                   //  BTR1_num=0xa5;
+ 377   2                     BTR0_num=0x43;                        //ok
+ 378   2                     BTR1_num=0x1b;
+ 379   2                     break;
+ 380   2                case ByteRate_250k  ://24MHZ
+ 381   2                  //   BTR0_num=0xc5;  //
+ 382   2                   //  BTR1_num=0xa5;
+ 383   2                     BTR0_num=0x01;                        //ok
+ 384   2                     BTR1_num=0x1c;
+ 385   2                     break;
+ 386   2                /* case ByteRate_200k  ://24MHZ
+ 387   2                     BTR0_num=0x81;
+ 388   2                     BTR1_num=0xFA;
+ 389   2                     break;*/
+ 390   2                case ByteRate_400k  :
+ 391   2                     BTR0_num=0x80;
+ 392   2                     BTR1_num=0xfa;
+ 393   2                     break;
+ 394   2                case ByteRate_500k  :
+ 395   2                     BTR0_num=0x01;
+ 396   2                     BTR1_num=0x1c;
+ 397   2                     break;
+ 398   2                case ByteRate_800k  :
+ 399   2                     BTR0_num=0x00;
+ 400   2                     BTR1_num=0x16;
+ 401   2                     break;
+ 402   2                case ByteRate_1000k  :
+ 403   2                     BTR0_num=0x00;
+ 404   2                     BTR1_num=0x14;
+ 405   2                     break;
+ 406   2                default :
+ 407   2                     return 1;
+ 408   2                     break;
+ 409   2              }
+ 410   1      
+ 411   1          SJA_BCANAdr=REG_BTR0;
+ 412   1          *SJA_BCANAdr=BTR0_num;
+ 413   1          if(*SJA_BCANAdr!=BTR0_num)
+ 414   1            {return 1;}
+ 415   1          SJA_BCANAdr=REG_BTR1;
+ 416   1          *SJA_BCANAdr=BTR1_num;
+ 417   1          if(*SJA_BCANAdr!=BTR1_num)
+ 418   1            {return 1;}
+ 419   1          return 0;
+ 420   1      }
+ 421          /************************************************************************
+ 422           *函数原型: bit BCAN_SET_CONTROL(unsigend char CMD)                     *
+ 423           *参数说明: 设置控制寄存器                                              *
+ 424           ************************************************************************/
+ 425          bit BCAN_SET_CONTROL(unsigned char CMD)
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 8   
+
+ 426          {  unsigned char TempData;
+ 427   1       
+ 428   1        SJA_BCANAdr=REG_CONTROL;   //SJA_BaseAdr+0x00  控制寄存器
+ 429   1        TempData=  *SJA_BCANAdr; 
+ 430   1       
+ 431   1        *SJA_BCANAdr=CMD;
+ 432   1       
+ 433   1        if (*SJA_BCANAdr == CMD)
+ 434   1          return 0;
+ 435   1        else
+ 436   1          return 1;
+ 437   1      
+ 438   1      }
+ 439          /************************************************************************
+ 440           *函数原型:  bit   BCAN_CREATE_COMMUNATION(void)                        * 
+ 441           *参数说明:  无                                                         *
+ 442           *返回值:                                                               *
+ 443           *           0 ; 表示SJA1000接口正常                                    *
+ 444           *           1 ; 表示SJA1000与处理器接口不正常                          *
+ 445           *说明:该函数用于检测CAN控制器的接口是否正常                            *
+ 446           ************************************************************************/
+ 447           bit BCAN_CREATE_COMMUNATION(void)
+ 448           {  
+ 449   1          SJA_BCANAdr=REG_TEST;      
+ 450   1          *SJA_BCANAdr=0xaa;       //写入测试值
+ 451   1          if(*SJA_BCANAdr == 0xaa)
+ 452   1             return 0;            //读测试正确
+ 453   1          else
+ 454   1             return 1;
+ 455   1           
+ 456   1       }
+ 457          
+ 458           /************************************************************************
+ 459           *函数原型:      bit   BCAN_ENTER_RETMODEL(void)                        *
+ 460           *参数说明:  无                                                         *
+ 461           *返回值:                                                               *
+ 462           *           0 ; 表示成功进入复位工作模式                               *
+ 463           *           1 ; 表示不能进入复位工作模式                               *
+ 464           *                                                                      * 
+ 465           *说明:      CAN控制器进入复位工作模式                                  *
+ 466           ************************************************************************/ 
+ 467           bit   BCAN_ENTER_RETMODEL(void)     //置位复位请求
+ 468           {
+ 469   1          unsigned   char   TempData;
+ 470   1          SJA_BCANAdr  = REG_CONTROL;   
+ 471   1      
+ 472   1        TempData=  *SJA_BCANAdr;       
+ 473   1          *SJA_BCANAdr=0x01;                 //置位复位请求 和单滤波模式
+ 474   1          if((*SJA_BCANAdr&0x01) == 1)
+ 475   1           return   0;
+ 476   1          else
+ 477   1            return   1;   
+ 478   1       } 
+ 479          /************************************************************************
+ 480           *函数原型:   BCAN_CMD_PRG(unsigned char cmd)                           *
+ 481           *参数说明:  unsigned char cmd                                          *
+ 482           *返回值:                                                               *
+ 483           *           0 ; 请求成功                                               *
+ 484           *           1 ; 请求失败                                               *
+ 485           *                                                                      * 
+ 486           *说明:      启动命令字                                                 *
+ 487           ************************************************************************/
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 9   
+
+ 488          bit  BCAN_CMD_PRG(unsigned char cmd)
+ 489           {
+ 490   1         SJA_BCANAdr=REG_COMMAND;            //访问地址指向命令寄存器
+ 491   1         *SJA_BCANAdr=cmd;                   //启动命令字
+ 492   1       
+ 493   1         switch(cmd)
+ 494   1         {    case  TR_CMD:                    
+ 495   2      
+ 496   2                 return    0;
+ 497   2                 break;
+ 498   2      
+ 499   2        case  SRR_CMD:      
+ 500   2      
+ 501   2            return 0;
+ 502   2           break;
+ 503   2          
+ 504   2        case  AT_CMD:                  
+ 505   2      
+ 506   2                  SJA_BCANAdr = REG_STATUS;   //访问地址指向状态寄存器   
+ 507   2                 if((*SJA_BCANAdr & 0x20)==0) //判断是否正在发送
+ 508   2                   return  0;
+ 509   2                 else
+ 510   2                   return  1;              
+ 511   2                 break; 
+ 512   2           case  RRB_CMD:                   
+ 513   2                 SJA_BCANAdr = REG_STATUS;   //访问地址指向状态寄存器   
+ 514   2                 if((*SJA_BCANAdr & 0x01)==1)
+ 515   2                    return  1;
+ 516   2                 else           
+ 517   2                    return  0;               
+ 518   2                 break;  
+ 519   2           case  COS_CMD:                  
+ 520   2      
+ 521   2                 SJA_BCANAdr = REG_STATUS;   
+ 522   2                 if((*SJA_BCANAdr & 0x02)==0)//判断清除超载是否成功
+ 523   2                   return  0; 
+ 524   2                 else
+ 525   2                   return  1;             
+ 526   2                 break; 
+ 527   2           default:
+ 528   2                   return  1;
+ 529   2                   break; 
+ 530   2         }
+ 531   1      }
+ 532          
+ 533          
+ 534          unsigned char BCAN_DATA_WRITE(unsigned char *SendDataBuf)
+ 535           {  unsigned char temp;
+ 536   1         
+ 537   1          SJA_BCANAdr = REG_STATUS;    
+ 538   1          temp=*SJA_BCANAdr;
+ 539   1      
+ 540   1          if ((temp&0x08)==0) return  1;    //上次发送未完成
+ 541   1          if ((temp&0x04)==0) return  2;    //发送缓冲区是否锁定 
+ 542   1          if ((temp&0x10)==0x10) return 3;  //判断是否正在接收   
+ 543   1      
+ 544   1          SJA_BCANAdr = REG_RXBuffer1;      //访问地址指向发送缓冲区1,修改成头文件
+ 545   1      
+ 546   1          memcpy(SJA_BCANAdr,SendDataBuf,4);   
+ 547   1          BCAN_CMD_PRG(TR_CMD);             //请求发送         
+ 548   1          return 0;
+ 549   1      }
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 10  
+
+ 550          
+ 551          //CAN发送任意长度字节
+ 552          void CAN_Send_anylength(unsigned char *CAN_TX_Buf, unsigned char length1, unsigned char com)
+ 553          {
+ 554   1        unsigned char temptt;
+ 555   1        loop:
+ 556   1          SJA_BCANAdr = REG_STATUS;    
+ 557   1               temptt=*SJA_BCANAdr; 
+ 558   1        //temptt=Read_SJA1000(REG_STATUS);
+ 559   1        if((temptt&0x04)==0x00)  goto loop;               //循环检测等待                       
+ 560   1        //可以向发送缓冲器写数据
+ 561   1        {
+ 562   2          SJA_BCANAdr  = REG_RXBuffer1;      //访问地址指向发送缓冲区1,修改成头文件
+ 563   2          *SJA_BCANAdr = length1 + 1;  
+ 564   2          SJA_BCANAdr  = REG_RXBuffer2;      //访问地址指向发送缓冲区1,修改成头文件
+ 565   2          *SJA_BCANAdr = MASTER_ADDRESS;  
+ 566   2          SJA_BCANAdr  = REG_RXBuffer3;     //访问地址指向发送缓冲区1,修改成头文件
+ 567   2          *SJA_BCANAdr = MACHINE_ADDRESS;
+ 568   2          SJA_BCANAdr  = REG_RXBuffer4;
+ 569   2          *SJA_BCANAdr = com;
+ 570   2          SJA_BCANAdr  = REG_RXBuffer5;
+ 571   2          memcpy(SJA_BCANAdr,CAN_TX_Buf,length1);   
+ 572   2        //数据发送请求
+ 573   2          BCAN_CMD_PRG(TR_CMD);            //请求发送  
+ 574   2        }
+ 575   1      }
+ 576          
+ 577          //CAN发送一个字节
+ 578          void CAN_Send_onebyte(unsigned char CAN_TX_data, unsigned char com)
+ 579          {
+ 580   1        unsigned char temptt;
+ 581   1        loop:
+ 582   1          SJA_BCANAdr = REG_STATUS;    
+ 583   1               temptt=*SJA_BCANAdr; 
+ 584   1        //temptt=Read_SJA1000(REG_STATUS);
+ 585   1        if((temptt&0x04)==0x00)  goto loop;               //循环检测等待                       
+ 586   1        //可以向发送缓冲器写数据
+ 587   1        {
+ 588   2          SJA_BCANAdr  = REG_RXBuffer1;      //访问地址指向发送缓冲区1,修改成头文件
+ 589   2          *SJA_BCANAdr = 2;  
+ 590   2          SJA_BCANAdr  = REG_RXBuffer2;      //访问地址指向发送缓冲区1,修改成头文件
+ 591   2          *SJA_BCANAdr = MASTER_ADDRESS;  
+ 592   2           SJA_BCANAdr = REG_RXBuffer3;     //访问地址指向发送缓冲区1,修改成头文件
+ 593   2          *SJA_BCANAdr = MACHINE_ADDRESS;
+ 594   2          SJA_BCANAdr  = REG_RXBuffer4;
+ 595   2          *SJA_BCANAdr = com;
+ 596   2          //memcpy(SJA_BCANAdr,CAN_TX_Buf,length1);
+ 597   2          SJA_BCANAdr  = REG_RXBuffer5;
+ 598   2          *SJA_BCANAdr=CAN_TX_data; 
+ 599   2        //数据发送请求
+ 600   2          BCAN_CMD_PRG(TR_CMD);            //请求发送  
+ 601   2        }
+ 602   1      }
+ 603          
+ 604          
+ 605          /****************************************************
+ 606          **函数原型：   bit Sja_1000_Init(void)
+ 607          **功    能：   初始化SJA10000
+ 608          **入口参数:    无 
+ 609          **返 回 值:     
+ 610                0： 初始化成功 
+ 611                1： 复位失败 
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 11  
+
+ 612                2:  测试sja1000失败 
+ 613                3： 设置失败 
+ 614                4： 设置验收滤波器失败
+ 615                5： 设置波特率失败     
+ 616          *****************************************************/
+ 617          unsigned char Sja_1000_Init(void)
+ 618          {
+ 619   1        bit s; 
+ 620   1        EA=0;                                 //关总中断
+ 621   1        
+ 622   1        s=BCAN_ENTER_RETMODEL();
+ 623   1        if (s==1) return 1; 
+ 624   1        
+ 625   1        s=BCAN_CREATE_COMMUNATION();       //建立通信
+ 626   1        if (s==1) return 2;
+ 627   1      
+ 628   1        s=BCAN_SET_OUTCLK(0xC8);             //Pelican
+ 629   1        if (s==1) return 3;
+ 630   1      
+ 631   1        //s=BCAN_SET_OBJECT(0xFF,0x4E,0x16,0x00,0xff,0xff,0xff,0xff);//屏蔽寄存器，都设为无关，接收所有报文
+ 632   1        //s=BCAN_SET_OBJECT(0x01,0xe0,0x02,0xe0,0x00,0x0f,0x00,0x0f);//屏蔽寄存器，都设为无关，接收所有报文 
+ 633   1             //当屏蔽位为1，不滤波，0就滤波必须相等
+ 634   1        s=BCAN_SET_OBJECT(MACHINE_ADDRESS,MASTER_ADDRESS,MACHINE_ADDRESS,MASTER_ADDRESS,0X00,0X00,0X00,0X00);
+ 635   1        //s=BCAN_SET_OBJECT(0x55,0xe0,0xaa,0xa1,0x00,0x00,0xff,0xff);//验收码&屏蔽码
+ 636   1        if (s==1) return 4;
+ 637   1      
+ 638   1        s=BCAN_SET_BANDRATE(ByteRate_125k);    //设置波特率125K 16MHZ
+ 639   1        if (s==1) return 5;
+ 640   1          
+ 641   1        SJA_BCANAdr=REG_OCR ;                  //输出控制寄存器  
+ 642   1        *SJA_BCANAdr=0x1a;        
+ 643   1        SJA_BCANAdr=REG_INTENABLE;      
+ 644   1        *SJA_BCANAdr=0x1D;                  //设置中断，接收和发送中断
+ 645   1          
+ 646   1        SJA_BCANAdr=REG_CONTROL;            //退出 复位模式
+ 647   1        *SJA_BCANAdr=*SJA_BCANAdr&0xfe;
+ 648   1        if(*SJA_BCANAdr!=0x00)
+ 649   1        return 6;
+ 650   1      
+ 651   1        EA=1;
+ 652   1        return 0;   
+ 653   1      } 
+ 654          
+ 655          /****************************************************
+ 656          **函数原型：  void AnsData(unsigned char com)
+ 657          **功    能：  应答数据
+ 658          **入口参数:   unsigned char com 接收到的命令
+ 659          **出口参数:   无  
+ 660          **说    明:   根据接收到的命令做相应的应答          
+ 661          *****************************************************/
+ 662          void AnsData(unsigned char com)
+ 663          {
+ 664   1          switch (com)
+ 665   1          {
+ 666   2            case 0x81:CAN_Send_onebyte(10, ANS_COMMAND_MODULE_STATUS);break;
+ 667   2          //  case 0x82:CAN_Send_onebyte(11, ANS_COMMAND_SET_PARAM);break;
+ 668   2            case 0x83:CAN_Send_onebyte(0, ANS_COMMAND_MODULE_PARAM);break;
+ 669   2            case 0x84:CAN_Send_onebyte(13, ANS_COMMAND_SET_ONOFF);break;
+ 670   2            case 0x85:CAN_Send_onebyte(14, ANS_COMMAND_SET_RESET);break;
+ 671   2            default:break;
+ 672   2          }
+ 673   1          //display(11);
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 12  
+
+ 674   1      }
+ 675          
+ 676          /****************************************************
+ 677          **函数原型：  void ex0_int(void) interrupt 0 //using 1
+ 678          **功    能：  中断接收函数
+ 679          **入口参数:   无 
+ 680          **出口参数:   RevceData[]数组   
+ 681          **说    明:   当sja1000 收到正确的报文时,会产生int中断           
+ 682          *****************************************************/
+ 683          void ex0_int(void) interrupt 0 using 1
+ 684          {  
+ 685   1        unsigned char tt,tt1,length,com = 0;
+ 686   1       
+ 687   1        SJA_BCANAdr=REG_INTERRUPT;
+ 688   1        if((*SJA_BCANAdr)&0x01)                   //产生了接收中断
+ 689   1        {  
+ 690   2          SJA_BCANAdr=REG_RXBuffer1;
+ 691   2          tt=*SJA_BCANAdr;
+ 692   2          tt1=*SJA_BCANAdr;
+ 693   2          length=tt1&0x0F;
+ 694   2          if ((tt&0x40)!=0x40)                   //数据帧   = 为远程帧
+ 695   2          {  
+ 696   3              SJA_BCANAdr = REG_RXBuffer4;              //宏定义的变量不能memcpy(RevceData,REG_RXBuffer4,8);
+ 697   3            com = *SJA_BCANAdr;
+ 698   3            SJA_BCANAdr = REG_RXBuffer5;
+ 699   3            memcpy(RevceData,SJA_BCANAdr,length - 1);    //功能：由src所指内存区域复制count个字节到dest所指内存区域
+ 700   3              display(RevceData[0]);
+ 701   3            AnsData(com);                  // 根据命令应答
+ 702   3          }
+ 703   2          BCAN_CMD_PRG(RRB_CMD);                  //释放SJA1000接收缓冲区，****已经修改
+ 704   2        }
+ 705   1      } 
+ 706          
+ 707          /****************************************************
+ 708          **函数原型：   void main(void)
+ 709          **功    能：   主程序部分:
+ 710          **入口参数:    无 
+ 711          **返 回 值:     
+ 712          *****************************************************/
+ 713          void main(void)
+ 714          {  
+ 715   1        unsigned char ss;
+ 716   1        unsigned char num=0;
+ 717   1        Infrared = 1;
+ 718   1        CS=0;                //片选择引脚
+ 719   1        EA=0;
+ 720   1        
+ 721   1        Init_Cpu(); 
+ 722   1        InitUART();     //初始化串口 
+ 723   1      
+ 724   1        
+ 725   1        ss=Sja_1000_Init();  //初始化SJA1000     
+ 726   1         
+ 727   1        if (ss!=0)             //初始化失败
+ 728   1        {
+ 729   2          SendStr("Sja_1000_Init() failure");              //测试专用发送到串口看状态
+ 730   2          display(ss);                                      // 显示错误信息
+ 731   2        }
+ 732   1          else
+ 733   1        {
+ 734   2          SendStr("Sja_1000_Init() sucess");  
+ 735   2          EA=1; //初始化成功，开总中断
+C51 COMPILER V9.51   SERVANT                                                               06/14/2016 18:31:24 PAGE 13  
+
+ 736   2          display(12);      //显示该板号C 
+ 737   2        }
+ 738   1      
+ 739   1        while(1) 
+ 740   1        {     
+ 741   2      
+ 742   2      if(!Infrared)
+ 743   2          {
+ 744   3          CAN_Send_onebyte(12,0x83);
+ 745   3            
+ 746   3          }
+ 747   2        if(RevceData[0]==4)
+ 748   2          {
+ 749   3          
+ 750   3            Led = 0;
+ 751   3          
+ 752   3            
+ 753   3          CAN_Send_onebyte(9,0x83);
+ 754   3          }
+ 755   2            if(RevceData[0]==12)
+ 756   2          {
+ 757   3          
+ 758   3            Led = 1;
+ 759   3      
+ 760   3            
+ 761   3        
+ 762   3          }
+ 763   2          
+ 764   2        }   
+ 765   1      }
+ 766          
+ 767          
+ 768          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1271    ----
+   CONSTANT SIZE    =     63    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13      26
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
